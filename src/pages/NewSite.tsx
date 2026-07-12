@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowLeft, Search, FileText, Rocket, Users, Building2, UtensilsCrossed, Layers, Check, Star, Heart, GraduationCap, Home, Calendar, ShoppingBag, Palette, Plane, Dumbbell } from 'lucide-react';
@@ -29,205 +29,232 @@ const categories = [
   { id: 'foodbev', label: 'Food & Beverage', icon: UtensilsCrossed },
 ];
 
-// 430+ unique real Unsplash photo IDs — every template gets its own image
-const PHOTO_POOL: string[] = [
-  // SaaS / Tech (30)
-  '1460925895917-afdab827c52f', '1551288049-bebda4e38f71', '1519389950473-47ba0277781c',
-  '1504868584819-f8e8b4b6d7e3', '1551434678-e076c223a692', '1498050108023-c5249f4df085',
-  '1555066931-4365d14bab8c', '1517694712202-14dd9538aa97', '1581091226825-a6a2a5aee158',
-  '1526374965328-7f61d4dc18c5', '1550751827-4bd374c3f58b', '1488590528505-98d2b5aba04b',
-  '1461749280684-dccba630e2f6', '1504639725590-34d0984388bd', '1536104968055-4d61aa56f46a',
-  '1573164713714-d95e436ab8d6', '1573164574572-cb89e39749b4', '1487058792275-0ad4aaf24ca7',
-  '1531297484001-80022131f5a1', '1563986768609-322da13575f2', '1559028012-481c04fa702d',
-  '1573495612890-430e48b164d0', '1518770660439-4636190af475', '1550745165-9bc0b252726f',
-  '1558494949-ef010cbdcc31', '1517245386807-bb43f82c33c4', '1580894894513-541e068a3e2b',
-  '1555421689-d68471e189f2', '1553877522-43269d4ea984', '1542744173-8e7e191f6d01',
-  // Portfolio / Creative (30)
-  '1507003211169-0a1dd7228f2d', '1513364776144-60967b0f800f', '1452587925148-ce544e77e70d',
-  '1542038784456-1ea8df7d1158', '1523726491678-bf852e717f6a', '1460661419907-fbcf45302e9f',
-  '1501594907352-04cda38ebc29', '1499951360447-b19032a05ddc', '1448932223592-d1fc686e76ea',
-  '1511512578047-dfb367046420', '1558655146-9f40138edfeb', '1518012312832-96aea3c91144',
-  '1513542789411-b6a5d4f31634', '1472289065668-ce650ac443d2', '1503551723145-6c040742065b',
-  '1524758631624-e2822e304c36', '1535016120720-40c646be5580', '1536924940846-227afb31e2a5',
-  '1499244571948-7ccddb3583f1', '1459411552884-841db9b3cc2a', '1493238792000-8113da705763',
-  '1509281373149-e957c6296406', '1470071459604-3b5ec3a7fe05', '1494790108377-be9c29b29330',
-  '1504805572947-34fad45aed96', '1496307653780-42ee777d4833', '1516035069371-29a1b244cc32',
-  '1519340241574-2cec6aef0c01', '1523800378286-fae245e13ed6', '1543946207-39bd91e70ca7',
-  // Business / Corporate (30)
-  '1497366216548-37526070297c', '1486406146926-c627a92ad1ab', '1454165804606-c3d57bc86b40',
-  '1556761175-5973dc0f32e7', '1521737604893-d14cc237f11d', '1553028826-f4804a6dba3b',
-  '1542744094-3a31f272c490', '1556761223-4c4282c73f77', '1557804506-669a67965ba0',
-  '1560472354-b33ff0c44a43', '1556761175-4b46a572b786', '1521791136064-7986c2920216',
-  '1556761175-b413da4baf72', '1517502884422-41eaead166d4', '1568992687947-868a62a9f521',
-  '1552664730-d307ca884978', '1559136555-9303baea8ebd', '1573497019940-1c28c88b4f3e',
-  '1573497491765-dccce02b29df', '1573496359142-b8d87734a5a2', '1573497620053-ea5300f94f21',
-  '1560179707-f14e90ef3623', '1576267423445-b2e0074d68a4', '1553484771-371a605b060b',
-  '1556742049-0cfed4f6a45d', '1556742111-a301076d9d18', '1556740758-28b93e4e853d',
-  '1556742205-e10c9486e506', '1542626991-cbc4e32524cc', '1556740772-1a741367b773',
-  // Restaurant / Food (30)
-  '1414235077428-338989a2e8c0', '1517248135467-4c7edcad34c4', '1552566626-52f8b828add9',
-  '1466978913421-dad2ebd01d17', '1504674900247-0877df9cc836', '1476224203421-9ac39bcb3327',
-  '1504754524776-8f4f37790ca0', '1498837167922-ddd27525d352', '1540189549336-e6e99c3679fe',
-  '1555939594-58d7cb561ad1', '1567620905732-2d1ec7ab7445', '1565299624946-b28f40a0ae38',
-  '1565958011703-44f9829ba187', '1482049016688-2d3874f542ba', '1432139555190-58524dae6a55',
-  '1495214783159-3503fd1f1b9c', '1473093295043-cdd812d0e601', '1481931098730-318b6f776db0',
-  '1485963631004-f2f00b1d6150', '1490645935967-10de6ba17061', '1506354666786-de0aef4d805d',
-  '1529042410759-befb1204b468', '1550547660-d9862f95f511', '1559339352-11d035aa65de',
-  '1571091718767-18b5b1457add', '1551218808-94e220e084d2', '1559847844-5315695dadae',
-  '1565299585323-38d6b0865b47', '1563379926898-05f4575a45d8', '1563245372-f21724e3856d',
-  // Wellness / Spa (25)
-  '1544161515-4ab6ce6db874', '1540555700478-4be289fbec6b', '1519824145371-296894a0daa9',
-  '1507652313519-d4e9174996dd', '1600334089138-5e6b6d8bd1bb', '1545205597-3d9d02c29597',
-  '1552693673-1bf958298935', '1571019613454-1cb2f99b2d8b', '1519823551278-64ac92734fb1',
-  '1515377905703-c4788e51af15', '1540206063137-4a88ca974d1a', '1507003211169-0a1dd7228f2d',
-  '1559599238-308793637427', '1574158622682-e40e69881006', '1560750588-73207b1ef5b8',
-  '1545389336-cf090694435e', '1591343395082-e120d7b4f609', '1571019614242-c5c5dee9f50c',
-  '1519823551278-64ac92734fb2', '1507652313519-d4e9174996de', '1540555700478-4be289fbec6c',
-  '1544161515-4ab6ce6db875', '1545205597-3d9d02c29598', '1552693673-1bf958298936',
-  '1571019613454-1cb2f99b2d8c',
-  // Fitness / Gym (25)
-  '1534438327276-14e5300c3a48', '1517963879433-6ad2b056d712', '1571019613454-1cb2f99b2d8d',
-  '1574680096145-d05b474e2155', '1581009146145-b5ef050c2e1e', '1576678927484-cc907957088c',
-  '1540497077202-7c8a3999166f', '1571902943202-507ec2618e8f', '1583454110551-21f2fa2afe61',
-  '1526506118085-60ce8714f8c5', '1518611012118-696072aa579a', '1517836357463-d25dfeac3438',
-  '1546483875-ad9014c88eba', '1549060279-7aa517d36a17', '1571731956672-f2b94d7dd0d9',
-  '1518310383802-640c2de311b2', '1561214078-f3247647fc5e', '1571019613576-2b22c76fd8bf',
-  '1574680178050-55c6a6a96e0a', '1581009137042-2e4a6dfc7096', '1576678927484-cc907957088d',
-  '1540497077202-7c8a3999166e', '1571902943202-507ec2618e8e', '1583454110551-21f2fa2afe62',
-  '1526506118085-60ce8714f8c6',
-  // Travel (25)
-  '1476514525535-07fb3b4ae5f1', '1488085061387-422e29b40080', '1507525428034-b723cf961d3e',
-  '1469854523086-cc02fe5d8800', '1530789253388-582c481c54b0', '1504150558240-0b4fd8946624',
-  '1506929562872-bb421503ef21', '1501785888108-af0d17975b6f', '1476900543235-9dd0c8169513',
-  '1530521954074-e64f6810b386', '1502003148287-a82ef80a6abc', '1527631746610-bca00a040d60',
-  '1501594907352-04cda38ebc30', '1520250497591-112f2f40a3f4', '1528127269322-539e1e28a42a',
-  '1548574505023-3787a75c6ddc', '1505228395891-9a51e7e86bf6', '1516483638261-6c8e58fb210a',
-  '1500835556837-99ac94a94552', '1536323760109-b763b02e60a5', '1530789253388-582c481c54b1',
-  '1504150558240-0b4fd8946625', '1506929562872-bb421503ef22', '1501785888108-af0d17975b70',
-  '1476900543235-9dd0c8169514',
-  // Health / Clinic (25)
-  '1576091160399-112ba8d25d1d', '1579684385127-1ef15d508118', '1530497610245-94d3c16cda28',
-  '1559757175-5700dde675bc', '1576091160550-2173dba999ef', '1551076805-e1869033e561',
-  '1582750433449-648ed127bb54', '1631217868264-e5b90bb7e133', '1559757148-34a15ab1da8a',
-  '1530026405186-ed1f139313f8', '1576091160399-112ba8d25d1e', '1579684385127-1ef15d508119',
-  '1530497610245-94d3c16cda29', '1559757175-5700dde675bd', '1576091160550-2173dba999f0',
-  '1551076805-e1869033e562', '1582750433449-648ed127bb55', '1631217868264-e5b90bb7e134',
-  '1559757148-34a15ab1da8b', '1530026405186-ed1f139313f9', '1576091160399-112ba8d25d1f',
-  '1579684385127-1ef15d50811a', '1530497610245-94d3c16cda2a', '1559757175-5700dde675be',
-  '1576091160550-2173dba999f1',
-  // Education (25)
-  '1523240795612-9a054b0db644', '1524178232363-1fb2b075b655', '1503676260728-1c00da094a0b',
-  '1427504494785-3a9ca7044f45', '1509062522246-3755977927d7', '1522202176988-66273c2fd55f',
-  '1497633762265-9d179a990aa6', '1456513080510-7bf3a84b82f8', '1488190211105-8b0e65b80b4e',
-  '1501504905252-473c47e087f8', '1523240795612-9a054b0db645', '1524178232363-1fb2b075b656',
-  '1503676260728-1c00da094a0c', '1427504494785-3a9ca7044f46', '1509062522246-3755977927d8',
-  '1522202176988-66273c2fd560', '1497633762265-9d179a990aa7', '1456513080510-7bf3a84b82f9',
-  '1488190211105-8b0e65b80b4f', '1501504905252-473c47e087f9', '1523240795612-9a054b0db646',
-  '1524178232363-1fb2b075b657', '1503676260728-1c00da094a0d', '1427504494785-3a9ca7044f47',
-  '1509062522246-3755977927d9',
-  // Real Estate (25)
-  '1560518883-ce09059eeffa', '1560448204-e02f11c3d0e2', '1564013799919-ab11e7d2a6ca',
-  '1582407947304-fd86f028f716', '1560185007-cde436f6a4d0', '1560184897-ae75f418493e',
-  '1565182999561-18d7dc61c393', '1570129477492-45c003edd2be', '1512917774080-9991f1c4c750',
-  '1582268611958-ebfd161ef9cf', '1560518883-ce09059eeffb', '1560448204-e02f11c3d0e3',
-  '1564013799919-ab11e7d2a6cb', '1582407947304-fd86f028f717', '1560185007-cde436f6a4d1',
-  '1560184897-ae75f418493f', '1565182999561-18d7dc61c394', '1570129477492-45c003edd2bf',
-  '1512917774080-9991f1c4c751', '1582268611958-ebfd161ef9d0', '1560518883-ce09059eeffc',
-  '1560448204-e02f11c3d0e4', '1564013799919-ab11e7d2a6cc', '1582407947304-fd86f028f718',
-  '1560185007-cde436f6a4d2',
-  // Events (25)
-  '1492684223066-81342ee5ff30', '1540575467063-178a50152fba', '1501281668745-f7f57925c3b4',
-  '1478147427282-58a87a120781', '1533174072545-7a4b6ad7a6c3', '1505236858219-8359eb29e329',
-  '1464366400600-7168b8af9bc3', '1472653816382-0e78d7d9e4b5', '1492684223066-81342ee5ff31',
-  '1540575467063-178a50152fbb', '1501281668745-f7f57925c3b5', '1478147427282-58a87a120782',
-  '1533174072545-7a4b6ad7a6c4', '1505236858219-8359eb29e32a', '1464366400600-7168b8af9bc4',
-  '1472653816382-0e78d7d9e4b6', '1492684223066-81342ee5ff32', '1540575467063-178a50152fbc',
-  '1501281668745-f7f57925c3b6', '1478147427282-58a87a120783', '1533174072545-7a4b6ad7a6c5',
-  '1505236858219-8359eb29e32b', '1464366400600-7168b8af9bc5', '1472653816382-0e78d7d9e4b7',
-  '1492684223066-81342ee5ff33',
-  // Fashion (25)
-  '1558618666-fcd25c85f82e', '1515886657613-9f3515b0c78f', '1445205170230-053b83016050',
-  '1469334031218-e382a71b716b', '1490481651871-ab68de25d43d', '1441984904996-e0b6ba687e04',
-  '1509631179647-0177331693ae', '1496747611176-843222e1e57c', '1558618666-fcd25c85f82f',
-  '1515886657613-9f3515b0c790', '1445205170230-053b83016051', '1469334031218-e382a71b716c',
-  '1490481651871-ab68de25d43e', '1441984904996-e0b6ba687e05', '1509631179647-0177331693af',
-  '1496747611176-843222e1e57d', '1558618666-fcd25c85f830', '1515886657613-9f3515b0c791',
-  '1445205170230-053b83016052', '1469334031218-e382a71b716d', '1490481651871-ab68de25d43f',
-  '1441984904996-e0b6ba687e06', '1509631179647-0177331693b0', '1496747611176-843222e1e57e',
-  '1558618666-fcd25c85f831',
-  // Hotel (25)
-  '1566073771259-6a8506099945', '1542314831-de9326eab519', '1551882547-ff40c63fe5fa',
-  '1564501049412-61c2a3083791', '1582719508461-905c673771eb', '1571896349842-a8e0e8d7d0f4',
-  '1520250497591-112f2f40a3f5', '1584132967334-10e028bd69f7', '1566073771259-6a8506099946',
-  '1542314831-de9326eab51a', '1551882547-ff40c63fe5fb', '1564501049412-61c2a3083792',
-  '1582719508461-905c673771ec', '1571896349842-a8e0e8d7d0f5', '1520250497591-112f2f40a3f6',
-  '1584132967334-10e028bd69f8', '1566073771259-6a8506099947', '1542314831-de9326eab51b',
-  '1551882547-ff40c63fe5fc', '1564501049412-61c2a3083793', '1582719508461-905c673771ed',
-  '1571896349842-a8e0e8d7d0f6', '1520250497591-112f2f40a3f7', '1584132967334-10e028bd69f9',
-  '1566073771259-6a8506099948',
-  // Nonprofit (25)
-  '1469571486292-0ba58a3f068b', '1488521787991-ed7bbaae773c', '1559027615-cd4628902d4a',
-  '1532629345422-7515f3d16bb6', '1517486808906-6ca8b3f04846', '1469571486292-0ba58a3f068c',
-  '1488521787991-ed7bbaae773d', '1559027615-cd4628902d4b', '1532629345422-7515f3d16bb7',
-  '1517486808906-6ca8b3f04847', '1469571486292-0ba58a3f068d', '1488521787991-ed7bbaae773e',
-  '1559027615-cd4628902d4c', '1532629345422-7515f3d16bb8', '1517486808906-6ca8b3f04848',
-  '1469571486292-0ba58a3f068e', '1488521787991-ed7bbaae773f', '1559027615-cd4628902d4d',
-  '1532629345422-7515f3d16bb9', '1517486808906-6ca8b3f04849', '1469571486292-0ba58a3f068f',
-  '1488521787991-ed7bbaae7740', '1559027615-cd4628902d4e', '1532629345422-7515f3d16bba',
-  '1517486808906-6ca8b3f0484a',
-  // Agency (25)
-  '1553877522-43269d4ea984', '1559136555-9303baea8ebd', '1542744173-8e7e191f6d01',
-  '1460661419907-fbcf45302e9f', '1551434678-e076c223a692', '1553877522-43269d4ea985',
-  '1559136555-9303baea8ebe', '1542744173-8e7e191f6d02', '1460661419907-fbcf45302ea0',
-  '1551434678-e076c223a693', '1553877522-43269d4ea986', '1559136555-9303baea8ebf',
-  '1542744173-8e7e191f6d03', '1460661419907-fbcf45302ea1', '1551434678-e076c223a694',
-  '1553877522-43269d4ea987', '1559136555-9303baea8ec0', '1542744173-8e7e191f6d04',
-  '1460661419907-fbcf45302ea2', '1551434678-e076c223a695', '1553877522-43269d4ea988',
-  '1559136555-9303baea8ec1', '1542744173-8e7e191f6d05', '1460661419907-fbcf45302ea3',
-  '1551434678-e076c223a696',
-  // Tech Landing (25)
-  '1518770660439-4636190af475', '1526374965328-7f61d4dc18c5', '1550751827-4bd374c3f58b',
-  '1488590528505-98d2b5aba04b', '1461749280684-dccba630e2f6', '1518770660439-4636190af476',
-  '1526374965328-7f61d4dc18c6', '1550751827-4bd374c3f58c', '1488590528505-98d2b5aba04c',
-  '1461749280684-dccba630e2f7', '1518770660439-4636190af477', '1526374965328-7f61d4dc18c7',
-  '1550751827-4bd374c3f58d', '1488590528505-98d2b5aba04d', '1461749280684-dccba630e2f8',
-  '1518770660439-4636190af478', '1526374965328-7f61d4dc18c8', '1550751827-4bd374c3f58e',
-  '1488590528505-98d2b5aba04e', '1461749280684-dccba630e2f9', '1518770660439-4636190af479',
-  '1526374965328-7f61d4dc18c9', '1550751827-4bd374c3f58f', '1488590528505-98d2b5aba04f',
-  '1461749280684-dccba630e2fa',
-  // Food & Beverage (25)
-  '1504674900247-0877df9cc836', '1476224203421-9ac39bcb3327', '1504754524776-8f4f37790ca0',
-  '1498837167922-ddd27525d352', '1540189549336-e6e99c3679fe', '1504674900247-0877df9cc837',
-  '1476224203421-9ac39bcb3328', '1504754524776-8f4f37790ca1', '1498837167922-ddd27525d353',
-  '1540189549336-e6e99c3679ff', '1504674900247-0877df9cc838', '1476224203421-9ac39bcb3329',
-  '1504754524776-8f4f37790ca2', '1498837167922-ddd27525d354', '1540189549336-e6e99c367a00',
-  '1504674900247-0877df9cc839', '1476224203421-9ac39bcb332a', '1504754524776-8f4f37790ca3',
-  '1498837167922-ddd27525d355', '1540189549336-e6e99c367a01', '1504674900247-0877df9cc83a',
-  '1476224203421-9ac39bcb332b', '1504754524776-8f4f37790ca4', '1498837167922-ddd27525d356',
-  '1540189549336-e6e99c367a02',
-];
-
-// Category → starting offset in PHOTO_POOL
-const CATEGORY_OFFSETS: Record<string, number> = {
-  saas: 0, portfolio: 30, business: 60, restaurant: 90,
-  wellness: 120, fitness: 145, travel: 170, health: 195,
-  education: 220, realestate: 245, event: 270, fashion: 295,
-  hotel: 320, nonprofit: 345, agency: 370, techlanding: 395, foodbev: 420,
+type TemplateVisualProfile = {
+  archetype: string;
+  label: string;
+  detail: string;
+  seed: number;
+  accent: string;
+  accentTwo: string;
+  bgA: string;
+  bgB: string;
+  surface: string;
+  text: string;
 };
 
-function getTemplateImageUrl(template: Template, globalIndex: number): string {
-  // Use picsum.photos with a seed derived from template name for guaranteed unique working images
-  const seed = template.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-  return `https://picsum.photos/seed/${seed}-${globalIndex}/800/600`;
+const CATEGORY_HUES: Record<string, [number, number]> = {
+  saas: [210, 62], portfolio: [270, 70], business: [205, 48], restaurant: [15, 38],
+  wellness: [145, 46], fitness: [350, 38], travel: [185, 62], health: [170, 44],
+  education: [220, 45], realestate: [30, 38], event: [295, 44], fashion: [325, 38],
+  hotel: [195, 38], nonprofit: [135, 42], agency: [265, 58], techlanding: [200, 60], foodbev: [25, 50],
+};
+
+const CATEGORY_VISUALS: Record<string, Pick<TemplateVisualProfile, 'archetype' | 'label' | 'detail'>> = {
+  saas: { archetype: 'dashboard', label: 'Software dashboard', detail: 'product UI, metrics, workflows' },
+  portfolio: { archetype: 'portfolio', label: 'Creative portfolio', detail: 'case studies, selected work' },
+  business: { archetype: 'business', label: 'Business services', detail: 'team, strategy, client trust' },
+  restaurant: { archetype: 'restaurant', label: 'Dining experience', detail: 'signature dish and reservation flow' },
+  wellness: { archetype: 'wellness', label: 'Wellness studio', detail: 'calm treatment and booking visual' },
+  fitness: { archetype: 'fitness', label: 'Fitness training', detail: 'strength, progress, coaching' },
+  travel: { archetype: 'travel', label: 'Travel destination', detail: 'itinerary, map, adventure' },
+  health: { archetype: 'health', label: 'Healthcare clinic', detail: 'care team and patient portal' },
+  education: { archetype: 'education', label: 'Learning platform', detail: 'lessons, progress, certificates' },
+  realestate: { archetype: 'property', label: 'Property showcase', detail: 'homes, listings, neighborhood' },
+  event: { archetype: 'events', label: 'Event landing', detail: 'stage, tickets, calendar' },
+  fashion: { archetype: 'fashion', label: 'Fashion storefront', detail: 'collection, product cards, lookbook' },
+  hotel: { archetype: 'hotel', label: 'Hotel booking', detail: 'suite, amenities, direct booking' },
+  nonprofit: { archetype: 'nonprofit', label: 'Nonprofit impact', detail: 'mission, donors, community' },
+  agency: { archetype: 'agency', label: 'Creative agency', detail: 'brand boards, campaign concepts' },
+  techlanding: { archetype: 'launch', label: 'Product launch', detail: 'app screen, waitlist, release' },
+  foodbev: { archetype: 'foodbev', label: 'Food brand', detail: 'product, packaging, ordering' },
+};
+
+const TEMPLATE_VISUAL_RULES: Array<{ pattern: RegExp; archetype: string; label: string; detail: string }> = [
+  { pattern: /ai|gpt|writing tool|content generation|writeai/i, archetype: 'ai-writing', label: 'AI writing workspace', detail: 'prompt panel, generated copy, assistant chat' },
+  { pattern: /crm|sales|pipeline|customer relationship/i, archetype: 'crm', label: 'CRM sales pipeline', detail: 'deals, contacts, follow-up automation' },
+  { pattern: /analytics|data|report|insight|metrics/i, archetype: 'analytics', label: 'Analytics command center', detail: 'live charts, KPIs, insight cards' },
+  { pattern: /video|stream|editor|motion/i, archetype: 'video', label: 'Video production suite', detail: 'player, timeline, chapters' },
+  { pattern: /e-learning|learn|academy|course|education|student|school/i, archetype: 'education', label: 'Online learning hub', detail: 'courses, lessons, progress tracking' },
+  { pattern: /hr|human resources|people|recruit|hiring|applicant/i, archetype: 'hr', label: 'People operations dashboard', detail: 'employees, onboarding, hiring pipeline' },
+  { pattern: /marketing|email|campaign|growth|social/i, archetype: 'marketing', label: 'Marketing campaign planner', detail: 'calendar, segments, conversion stats' },
+  { pattern: /invoice|billing|payment|finance|accounting/i, archetype: 'finance', label: 'Billing and payments screen', detail: 'invoice, totals, payment status' },
+  { pattern: /support|ticket|help desk|chat/i, archetype: 'support', label: 'Customer support desk', detail: 'tickets, live chat, knowledge base' },
+  { pattern: /e-commerce|shop|store|commerce|market|boutique/i, archetype: 'commerce', label: 'Commerce storefront', detail: 'product cards, checkout, inventory' },
+  { pattern: /api|developer|code|dev/i, archetype: 'developer', label: 'Developer API console', detail: 'endpoints, docs, testing panel' },
+  { pattern: /cyber|security|password|vault|lock|secure/i, archetype: 'security', label: 'Security control room', detail: 'shield, vault, threat monitoring' },
+  { pattern: /survey|form|questionnaire/i, archetype: 'forms', label: 'Form builder', detail: 'questions, logic, responses' },
+  { pattern: /project|workflow|automation|task|kanban/i, archetype: 'workflow', label: 'Workflow management board', detail: 'tasks, automations, project status' },
+  { pattern: /cloud|storage|file|document|knowledge|wiki|base/i, archetype: 'knowledge', label: 'Knowledge and file hub', detail: 'docs, search, shared folders' },
+  { pattern: /designer|design tool|ui\/ux|creative|agency|brand|studio|canvas|pixel/i, archetype: 'design', label: 'Design studio preview', detail: 'artboards, components, color swatches' },
+  { pattern: /photograph|camera|photo/i, archetype: 'photography', label: 'Photography portfolio', detail: 'gallery wall, lens, hero image' },
+  { pattern: /3d|render|architect|architecture/i, archetype: 'architecture', label: 'Spatial showcase', detail: 'model, blueprint, project gallery' },
+  { pattern: /illustrator|illustration|artist|art/i, archetype: 'illustration', label: 'Illustration gallery', detail: 'sketches, color, portfolio pieces' },
+  { pattern: /copywriter|writer|writing portfolio/i, archetype: 'copywriting', label: 'Writing portfolio', detail: 'editorial samples and campaign copy' },
+  { pattern: /music|musician|audio/i, archetype: 'music', label: 'Music artist page', detail: 'album art, tracks, tour dates' },
+  { pattern: /law|legal|attorney/i, archetype: 'legal', label: 'Legal services page', detail: 'practice areas, trust signals, consultation' },
+  { pattern: /real estate|realty|home|property|estate|homes|nest/i, archetype: 'property', label: 'Real estate listings', detail: 'featured home, map, property cards' },
+  { pattern: /restaurant|dining|burger|ramen|café|cafe|steak|italian/i, archetype: 'restaurant', label: 'Restaurant hero image', detail: 'dish, menu, reservation card' },
+  { pattern: /spa|wellness|mindful|healing|zen|yoga|therapy|calm/i, archetype: 'wellness', label: 'Wellness appointment visual', detail: 'treatment, relaxation, booking CTA' },
+  { pattern: /gym|fitness|train|athletic|cardio|muscle|workout|strength/i, archetype: 'fitness', label: 'Fitness program visual', detail: 'training plan, progress, coaching' },
+  { pattern: /travel|tour|journey|adventure|island|mountain|safari|hotel|resort|lodge/i, archetype: 'travel', label: 'Destination travel scene', detail: 'landscape, route, booking panel' },
+  { pattern: /clinic|health|medical|doctor|care|dental|med/i, archetype: 'health', label: 'Healthcare appointment visual', detail: 'patient care, doctor, portal card' },
+  { pattern: /fashion|label|runway|style|luxe|vogue/i, archetype: 'fashion', label: 'Fashion collection preview', detail: 'lookbook, products, editorial layout' },
+  { pattern: /hotel|suite|inn|palace|harbor|resort/i, archetype: 'hotel', label: 'Hospitality booking preview', detail: 'room card, amenities, rates' },
+  { pattern: /foundation|nonprofit|charity|hope|green|earth|care|community/i, archetype: 'nonprofit', label: 'Mission impact visual', detail: 'donation, volunteers, progress goal' },
+  { pattern: /brewery|bakery|juice|tea|coffee|chocolate|wine|smoothie|honey|spice|cream|food/i, archetype: 'foodbev', label: 'Food product preview', detail: 'packaging, ingredient, order card' },
+  { pattern: /launch|startup|mvp|product|beta|app|rocket/i, archetype: 'launch', label: 'Product launch preview', detail: 'app screen, waitlist, growth graph' },
+];
+
+function hashString(input: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0);
+}
+
+function getTemplateVisualProfile(template: Template, globalIndex: number): TemplateVisualProfile {
+  const seed = hashString(`${template.id}:${template.name}:${globalIndex}`);
+  const source = `${template.name} ${template.description} ${template.category}`;
+  const rule = TEMPLATE_VISUAL_RULES.find(r => r.pattern.test(source));
+  const fallback = CATEGORY_VISUALS[template.category] || CATEGORY_VISUALS.saas;
+  const hueRange = CATEGORY_HUES[template.category] || CATEGORY_HUES.saas;
+  const hue = (hueRange[0] + (seed % hueRange[1])) % 360;
+  const hueTwo = (hue + 38 + (seed % 46)) % 360;
+
+  return {
+    archetype: rule?.archetype || fallback.archetype,
+    label: rule?.label || fallback.label,
+    detail: rule?.detail || fallback.detail,
+    seed,
+    accent: `hsl(${hue} 84% 58%)`,
+    accentTwo: `hsl(${hueTwo} 78% 62%)`,
+    bgA: `hsl(${(hue + 220) % 360} 44% 10%)`,
+    bgB: `hsl(${(hue + 250) % 360} 48% 17%)`,
+    surface: `hsl(${(hue + 225) % 360} 36% 98% / 0.13)`,
+    text: `hsl(${(hue + 12) % 360} 45% 94%)`,
+  };
+}
+
+function SceneArtwork({ profile, template }: { profile: TemplateVisualProfile; template: Template }) {
+  const gid = `preview-${template.id.replace(/[^a-z0-9]/gi, '-')}-${profile.seed}`;
+  const common = { stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
+  const title = template.name.length > 18 ? `${template.name.slice(0, 18)}…` : template.name;
+
+  const renderScene = () => {
+    switch (profile.archetype) {
+      case 'ai-writing':
+        return <><rect x="24" y="33" width="128" height="82" rx="12" fill={`url(#${gid}-glass)`} /><rect x="38" y="47" width="31" height="31" rx="7" fill={profile.accent} /><text x="47" y="68" fontSize="17" fontWeight="800" fill="white">AI</text><path d="M82 53h47M82 66h55M38 91h92M38 102h75" {...common} opacity=".72" /><path d="M83 83c7-14 11 14 18 0s11 14 18 0 11 14 18 0" {...common} stroke={profile.accentTwo} /><rect x="142" y="43" width="46" height="12" rx="6" fill={profile.accentTwo} opacity=".78" /><rect x="154" y="64" width="54" height="14" rx="7" fill="currentColor" opacity=".18" /><rect x="146" y="84" width="39" height="13" rx="7" fill="currentColor" opacity=".22" /><path d="M50 126h112l18 11H34z" fill="currentColor" opacity=".16" /></>;
+      case 'crm':
+        return <><rect x="25" y="32" width="167" height="93" rx="13" fill={`url(#${gid}-glass)`} /><circle cx="48" cy="55" r="10" fill={profile.accent} /><path d="M66 50h45M66 61h28" {...common} opacity=".65" />{[0, 1, 2].map(i => <g key={i}><rect x={38 + i * 49} y="80" width="37" height="28" rx="7" fill={i === 1 ? profile.accentTwo : 'currentColor'} opacity={i === 1 ? .75 : .18} /><path d={`M45 ${91 + i * 2}h20M45 ${100 + i * 2}h13`} {...common} stroke={i === 1 ? 'white' : 'currentColor'} opacity=".72" /></g>)}<path d="M70 129c22-10 53-10 80 0" {...common} stroke={profile.accent} /></>;
+      case 'analytics':
+      case 'dashboard':
+      case 'data':
+        return <><rect x="22" y="31" width="176" height="96" rx="14" fill={`url(#${gid}-glass)`} /><path d="M42 98l25-25 24 16 35-39 39 27" {...common} stroke={profile.accentTwo} /><circle cx="67" cy="73" r="5" fill={profile.accentTwo} /><circle cx="126" cy="50" r="5" fill={profile.accentTwo} />{[0, 1, 2, 3].map(i => <rect key={i} x={43 + i * 33} y={105 - i * 11} width="16" height={20 + i * 11} rx="5" fill={i % 2 ? profile.accent : 'currentColor'} opacity={i % 2 ? .82 : .22} />)}<rect x="150" y="45" width="29" height="18" rx="7" fill={profile.accent} opacity=".8" /></>;
+      case 'video':
+        return <><rect x="25" y="33" width="170" height="92" rx="14" fill={`url(#${gid}-glass)`} /><path d="M99 61l31 18-31 18z" fill={profile.accent} /><rect x="43" y="105" width="115" height="7" rx="4" fill="currentColor" opacity=".2" /><rect x="43" y="105" width="64" height="7" rx="4" fill={profile.accentTwo} /><rect x="163" y="104" width="15" height="9" rx="4" fill="currentColor" opacity=".28" /><path d="M50 47h32M138 47h34" {...common} opacity=".55" /></>;
+      case 'education':
+        return <><path d="M38 52h63c11 0 18 7 18 18v58H56c-10 0-18-8-18-18z" fill={`url(#${gid}-glass)`} /><path d="M119 70c0-11 7-18 18-18h45v75h-63z" fill="currentColor" opacity=".14" /><path d="M62 74h36M62 90h43M140 74h24M140 90h29" {...common} opacity=".65" /><path d="M98 39l43-16 43 16-43 16zM118 51v18c13 8 31 8 45 0V51" {...common} stroke={profile.accentTwo} /><circle cx="184" cy="76" r="7" fill={profile.accent} /></>;
+      case 'hr':
+      case 'recruiting':
+        return <><rect x="32" y="35" width="154" height="94" rx="15" fill={`url(#${gid}-glass)`} />{[[72, 62], [118, 62], [164, 62], [95, 101], [142, 101]].map(([x, y], i) => <g key={i}><circle cx={x} cy={y} r="12" fill={i === 1 ? profile.accent : 'currentColor'} opacity={i === 1 ? .9 : .22} /><path d={`M${x - 16} ${y + 24}c7-10 25-10 32 0`} {...common} stroke={i === 1 ? profile.accentTwo : 'currentColor'} opacity=".7" /></g>)}<path d="M118 75v14M95 89h47" {...common} opacity=".42" /></>;
+      case 'marketing':
+      case 'social':
+        return <><rect x="33" y="46" width="76" height="62" rx="13" fill={`url(#${gid}-glass)`} /><path d="M113 61l54-22v72l-54-22z" fill={profile.accent} opacity=".9" /><path d="M167 57c17 9 17 35 0 44" {...common} stroke={profile.accentTwo} /><path d="M51 65h38M51 80h31M51 95h44" {...common} opacity=".65" /><circle cx="183" cy="72" r="9" fill="currentColor" opacity=".18" /><circle cx="190" cy="101" r="6" fill={profile.accentTwo} /></>;
+      case 'finance':
+        return <><rect x="62" y="31" width="96" height="106" rx="12" fill={`url(#${gid}-glass)`} /><path d="M84 57h51M84 74h38M84 91h51" {...common} opacity=".62" /><rect x="84" y="108" width="53" height="15" rx="7" fill={profile.accent} /><circle cx="56" cy="65" r="20" fill="currentColor" opacity=".14" /><text x="47" y="73" fontSize="24" fontWeight="800" fill={profile.accentTwo}>$</text><path d="M156 47h25M156 61h18" {...common} stroke={profile.accentTwo} /></>;
+      case 'support':
+      case 'chat':
+        return <><rect x="31" y="42" width="83" height="48" rx="15" fill={`url(#${gid}-glass)`} /><rect x="103" y="76" width="81" height="45" rx="15" fill="currentColor" opacity=".16" /><path d="M51 63h42M51 76h27M124 96h39M124 108h24" {...common} opacity=".66" /><path d="M62 105c0-30 31-49 59-35" {...common} stroke={profile.accentTwo} /><circle cx="58" cy="105" r="12" fill={profile.accent} /><circle cx="140" cy="61" r="9" fill={profile.accentTwo} /></>;
+      case 'commerce':
+      case 'fashion':
+        return <><rect x="30" y="47" width="48" height="67" rx="12" fill={`url(#${gid}-glass)`} /><rect x="89" y="34" width="48" height="80" rx="12" fill="currentColor" opacity=".16" /><rect x="148" y="55" width="42" height="59" rx="12" fill={`url(#${gid}-glass)`} /><path d="M44 84h20M103 74h21M103 91h14M160 88h18" {...common} opacity=".65" /><path d="M48 47c2-18 28-18 30 0M101 34c2-18 28-18 30 0M158 55c2-15 24-15 26 0" {...common} stroke={profile.accentTwo} /><circle cx="127" cy="123" r="8" fill={profile.accent} /><path d="M74 123h53" {...common} stroke={profile.accent} /></>;
+      case 'developer':
+        return <><rect x="24" y="35" width="172" height="90" rx="13" fill={`url(#${gid}-glass)`} /><text x="44" y="77" fontSize="31" fontWeight="800" fill={profile.accent}>{'{'}</text><text x="162" y="77" fontSize="31" fontWeight="800" fill={profile.accentTwo}>{'}'}</text><path d="M80 56h58M80 73h41M80 90h66M80 107h32" {...common} opacity=".66" /><rect x="39" y="96" width="29" height="14" rx="7" fill="currentColor" opacity=".2" /><path d="M123 51l-22 63" {...common} stroke={profile.accentTwo} /></>;
+      case 'security':
+        return <><path d="M110 27l63 22v37c0 34-25 51-63 62-38-11-63-28-63-62V49z" fill={`url(#${gid}-glass)`} /><path d="M110 55c20 0 35 15 35 35s-15 35-35 35-35-15-35-35 15-35 35-35z" fill="currentColor" opacity=".12" /><rect x="88" y="88" width="44" height="31" rx="8" fill={profile.accent} /><path d="M96 88V77c0-19 28-19 28 0v11" {...common} stroke={profile.accentTwo} /><path d="M55 128h28M139 128h31" {...common} opacity=".56" /></>;
+      case 'forms':
+        return <><rect x="53" y="31" width="114" height="104" rx="13" fill={`url(#${gid}-glass)`} />{[0, 1, 2].map(i => <g key={i}><circle cx="76" cy={62 + i * 24} r="7" fill={i === 1 ? profile.accent : 'currentColor'} opacity={i === 1 ? .88 : .22} /><path d={`M92 ${62 + i * 24}h49`} {...common} opacity=".62" /></g>)}<rect x="88" y="116" width="54" height="12" rx="6" fill={profile.accentTwo} /><path d="M169 57h18M169 75h24M169 93h14" {...common} stroke={profile.accent} /></>;
+      case 'workflow':
+        return <><rect x="29" y="39" width="46" height="79" rx="11" fill={`url(#${gid}-glass)`} /><rect x="87" y="31" width="46" height="96" rx="11" fill="currentColor" opacity=".16" /><rect x="145" y="50" width="46" height="68" rx="11" fill={`url(#${gid}-glass)`} />{[48, 67, 86, 105].map((y, i) => <path key={i} d={`M43 ${y}h18`} {...common} stroke={i === 1 ? profile.accent : 'currentColor'} opacity=".64" />)}<path d="M75 74h12M133 74h12" {...common} stroke={profile.accentTwo} /><circle cx="110" cy="80" r="16" fill={profile.accent} opacity=".85" /></>;
+      case 'knowledge':
+        return <><rect x="33" y="43" width="154" height="84" rx="14" fill={`url(#${gid}-glass)`} /><path d="M55 66h73M55 82h98M55 98h48" {...common} opacity=".64" /><rect x="137" y="60" width="28" height="42" rx="6" fill={profile.accent} opacity=".84" /><path d="M143 71h16M143 83h12" {...common} stroke="white" opacity=".75" /><circle cx="65" cy="122" r="10" fill={profile.accentTwo} /><path d="M80 122h60" {...common} stroke={profile.accentTwo} /></>;
+      case 'design':
+      case 'agency':
+      case 'portfolio':
+      case 'illustration':
+        return <><rect x="32" y="36" width="78" height="86" rx="13" fill={`url(#${gid}-glass)`} /><rect x="122" y="47" width="65" height="44" rx="12" fill="currentColor" opacity=".16" /><circle cx="63" cy="72" r="20" fill={profile.accent} opacity=".82" /><path d="M47 105h47M132 64h38M132 79h25" {...common} opacity=".66" /><circle cx="135" cy="111" r="9" fill={profile.accent} /><circle cx="158" cy="111" r="9" fill={profile.accentTwo} /><circle cx="181" cy="111" r="9" fill="currentColor" opacity=".22" /></>;
+      case 'photography':
+        return <><rect x="34" y="48" width="151" height="82" rx="14" fill={`url(#${gid}-glass)`} /><circle cx="110" cy="89" r="27" fill="currentColor" opacity=".16" /><circle cx="110" cy="89" r="17" fill={profile.accent} opacity=".86" /><path d="M57 48l14-18h34l10 18M50 112l35-31 25 23 20-19 38 27" {...common} stroke={profile.accentTwo} /><circle cx="165" cy="66" r="7" fill="currentColor" opacity=".25" /></>;
+      case 'architecture':
+      case 'property':
+      case 'hotel':
+      case 'business':
+        return <><path d="M40 120V68l69-35 69 35v52" fill={`url(#${gid}-glass)`} /><path d="M69 120V81h81v39M91 120V93h36v27" {...common} /><path d="M109 33l76 39M109 33L33 72" {...common} stroke={profile.accentTwo} /><rect x="142" y="91" width="24" height="29" rx="4" fill={profile.accent} opacity=".82" /><rect x="55" y="90" width="23" height="20" rx="4" fill="currentColor" opacity=".2" /></>;
+      case 'copywriting':
+        return <><rect x="45" y="30" width="128" height="104" rx="13" fill={`url(#${gid}-glass)`} /><path d="M69 59h77M69 76h58M69 93h78M69 110h42" {...common} opacity=".64" /><path d="M145 103l27 27M151 96l28 28" {...common} stroke={profile.accentTwo} /><circle cx="70" cy="39" r="6" fill={profile.accent} /><rect x="58" y="121" width="55" height="10" rx="5" fill={profile.accent} /></>;
+      case 'music':
+        return <><circle cx="83" cy="85" r="46" fill={`url(#${gid}-glass)`} /><circle cx="83" cy="85" r="16" fill={profile.accent} /><path d="M140 41v62c0 13-11 23-24 19-13-4-12-21 2-25 8-2 15 0 22 5V55l42-11v47" {...common} stroke={profile.accentTwo} /><path d="M55 137h74" {...common} opacity=".54" /></>;
+      case 'legal':
+        return <><path d="M110 36v89M65 60h90M75 60l-27 45h54zM145 60l-27 45h54z" {...common} /><rect x="73" y="125" width="74" height="12" rx="6" fill={profile.accent} /><circle cx="110" cy="48" r="13" fill={profile.accentTwo} opacity=".82" /><rect x="45" y="35" width="130" height="95" rx="13" fill={`url(#${gid}-glass)`} opacity=".45" /></>;
+      case 'restaurant':
+      case 'foodbev':
+        return <><circle cx="92" cy="83" r="45" fill={`url(#${gid}-glass)`} /><circle cx="92" cy="83" r="26" fill="currentColor" opacity=".14" /><path d="M66 82c18-20 40 20 56 0" {...common} stroke={profile.accentTwo} /><path d="M151 44v84M165 44v84M151 76h14M181 46c-10 19-9 37 0 49v33" {...common} stroke={profile.accent} /><rect x="51" y="123" width="85" height="11" rx="5" fill="currentColor" opacity=".18" /></>;
+      case 'wellness':
+        return <><path d="M110 123c-35-7-55-29-57-67 31 5 50 25 57 67zM110 123c35-7 55-29 57-67-31 5-50 25-57 67zM110 120c-21-27-21-54 0-80 21 26 21 53 0 80z" fill={`url(#${gid}-glass)`} /><path d="M63 131h94" {...common} stroke={profile.accentTwo} /><circle cx="171" cy="46" r="13" fill={profile.accent} opacity=".78" /><path d="M49 48c8-8 16-8 24 0M152 104c8-8 16-8 24 0" {...common} opacity=".55" /></>;
+      case 'fitness':
+        return <><path d="M43 83h134M53 61v44M73 54v58M147 54v58M167 61v44" {...common} stroke={profile.accentTwo} /><rect x="82" y="61" width="56" height="44" rx="12" fill={`url(#${gid}-glass)`} /><path d="M95 88l12-17 12 26 12-19" {...common} stroke={profile.accent} /><circle cx="58" cy="126" r="10" fill={profile.accent} /><path d="M77 126h66" {...common} opacity=".54" /></>;
+      case 'travel':
+        return <><path d="M27 123l43-55 32 39 28-30 63 46z" fill={`url(#${gid}-glass)`} /><circle cx="163" cy="51" r="18" fill={profile.accent} opacity=".82" /><path d="M53 53c37-20 84-16 122 12" {...common} stroke={profile.accentTwo} strokeDasharray="6 8" /><path d="M108 47l20 8-18 10 5-10z" fill={profile.accentTwo} /><rect x="46" y="112" width="102" height="17" rx="8" fill="currentColor" opacity=".16" /></>;
+      case 'health':
+        return <><rect x="43" y="42" width="134" height="84" rx="17" fill={`url(#${gid}-glass)`} /><path d="M110 59v49M86 84h49" {...common} stroke={profile.accent} strokeWidth={8} /><path d="M53 133c20-16 48-17 70-2 16 11 34 10 51-1" {...common} stroke={profile.accentTwo} /><circle cx="166" cy="54" r="11" fill={profile.accentTwo} opacity=".76" /></>;
+      case 'events':
+      case 'launch':
+        return <><rect x="42" y="42" width="136" height="84" rx="15" fill={`url(#${gid}-glass)`} /><path d="M42 67h136" {...common} opacity=".5" /><rect x="66" y="83" width="29" height="29" rx="7" fill={profile.accent} /><rect x="105" y="83" width="29" height="29" rx="7" fill="currentColor" opacity=".18" /><path d="M124 34v25M96 34v25M152 34v25" {...common} stroke={profile.accentTwo} /><path d="M59 128l103-103" {...common} stroke={profile.accentTwo} strokeDasharray="7 8" /></>;
+      case 'nonprofit':
+        return <><path d="M110 122C69 99 48 79 55 57c6-18 30-18 43-1 13-17 37-17 43 1 8 22-13 42-31 65z" fill={`url(#${gid}-glass)`} /><path d="M50 128c26-17 47-17 63 0M110 128c20-15 42-15 66 0" {...common} stroke={profile.accentTwo} /><circle cx="166" cy="54" r="14" fill={profile.accent} opacity=".78" /><path d="M70 71c9-8 18-8 27 0" {...common} opacity=".55" /></>;
+      default:
+        return <><rect x="29" y="37" width="162" height="90" rx="15" fill={`url(#${gid}-glass)`} /><path d="M51 64h74M51 82h103M51 100h62" {...common} opacity=".65" /><circle cx="151" cy="70" r="22" fill={profile.accent} opacity=".82" /><path d="M137 103h34" {...common} stroke={profile.accentTwo} /></>;
+    }
+  };
+
+  return (
+    <svg viewBox="0 0 220 150" className="template-scene" aria-hidden="true" style={{ color: profile.text }}>
+      <defs>
+        <linearGradient id={`${gid}-glass`} x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.24" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.08" />
+        </linearGradient>
+      </defs>
+      {renderScene()}
+      <text x="18" y="143" fontSize="11" fontWeight="700" fill="currentColor" opacity=".56">{title}</text>
+    </svg>
+  );
 }
 
 function TemplateMiniPreview({ template, index }: { template: Template; index: number }) {
-  const imgUrl = getTemplateImageUrl(template, index);
+  const profile = getTemplateVisualProfile(template, index);
+  const style = {
+    '--preview-bg-a': profile.bgA,
+    '--preview-bg-b': profile.bgB,
+    '--preview-accent': profile.accent,
+    '--preview-accent-two': profile.accentTwo,
+    '--preview-surface': profile.surface,
+    '--preview-text': profile.text,
+  } as CSSProperties;
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-t-lg">
-      <img src={imgUrl} alt={template.name} className="h-full w-full object-cover" loading="lazy" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+    <div className="template-preview-card" style={style} role="img" aria-label={`${template.name}: ${profile.label}`}>
+      <div className="template-preview-grid" />
+      <div className="template-preview-glow template-preview-glow-a" />
+      <div className="template-preview-glow template-preview-glow-b" />
+      <div className="template-preview-copy">
+        <span>{template.category}</span>
+        <strong>{profile.label}</strong>
+        <small>{profile.detail}</small>
+      </div>
+      <SceneArtwork profile={profile} template={template} />
     </div>
   );
 }
